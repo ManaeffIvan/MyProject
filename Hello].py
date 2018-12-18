@@ -43,25 +43,26 @@ class Example(QWidget):
             if self.mode == 0:
                 self.setMouseTracking(True)
             elif self.mode == 1:
-                self.begin1 = [QMouseEvent.x(), QMouseEvent.y()]
+                self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
             elif self.mode == 2 or self.mode == 3:
                 self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
         else:
             if self.mode == 0:
                 self.setMouseTracking(False)
             elif self.mode == 1:
-                print(1)
                 A = self.left_corner[1] - QMouseEvent.y()
-                print(1)
                 B = QMouseEvent.x() - self.left_corner[0]
                 C = self.left_corner[0] * QMouseEvent.y() - QMouseEvent.x() * self.left_corner[1]
-
-                for i in range(min(QMouseEvent.x(), self.left_corner[0]),
-                               max(QMouseEvent.x(), self.left_corner[0])):
-                    for j in range(min(QMouseEvent.x(), self.left_corner[0]),
-                                   max(QMouseEvent.x(), self.left_corner[0])):
-                        if abs(A * i + B * j + C) < self.width // 2:
-                            self.pole[i][j] = self.color
+                print(1)
+                for i in range(min(QMouseEvent.x(), self.left_corner[0]) * 10000,
+                               max(QMouseEvent.x(), self.left_corner[0]) * 10000):
+                    for j in range(min(QMouseEvent.y(), self.left_corner[1]) * 10000,
+                                   max(QMouseEvent.y(), self.left_corner[1]) * 10000):
+                        if abs(A * (i // 10000) + B * (j // 10000) + C) < self.width / 2:
+                            for i1 in range(self.width):
+                                for j1 in range(self.width):
+                                    self.pole[i // 10000 + i1][j // 10000 + j1] = self.color
+                                    self.pole[i // 10000 + i1][j // 10000 + j1] = self.color
 
             elif self.mode == 2:
                 self.circles.append(([self.left_corner,
@@ -124,6 +125,7 @@ class Example(QWidget):
 
 
 if __name__ == '__main__':
+    print(int(0.01))
     app = QApplication(sys.argv)
     ex = Example()
     sys.exit(app.exec_())
