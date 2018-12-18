@@ -18,7 +18,7 @@ class Example(QWidget):
         self.left_corner = 0
         self.width = 5
         self.n = 4
-        self.pole = [[(255, 255, 255) for j in range(660)] for i in range(660)]
+        self.pole = [['#ffffff' for j in range(660)] for i in range(660)]
         self.circles = []
         self.straights = []
         self.rectangles = []
@@ -36,9 +36,7 @@ class Example(QWidget):
             if self.mode == 0:
                 for i in range(self.width):
                     for j in range(self.width):
-                        self.pole[QMouseEvent.x() + i][QMouseEvent.y() + j] = (int(self.color.name()[1:3], 16),
-                                                                       int(self.color.name()[3:5], 16),
-                                                                       int(self.color.name()[5:7], 16))
+                        self.pole[QMouseEvent.x() + i][QMouseEvent.y() + j] = self.color
 
     def mousePressEvent(self, QMouseEvent):
         if self.counter % 2 == 0:
@@ -52,16 +50,35 @@ class Example(QWidget):
             if self.mode == 0:
                 self.setMouseTracking(False)
             elif self.mode == 1:
-                self.end1 = [QMouseEvent.x(), QMouseEvent.y()]
-                self.straights.append(([self.begin1, self.end1], self.color.name(), self.width))
+                print(1)
+                A = self.left_corner[1] - QMouseEvent.y()
+                print(1)
+                B = QMouseEvent.x() - self.left_corner[0]
+                C = self.left_corner[0] * QMouseEvent.y() - QMouseEvent.x() * self.left_corner[1]
+
+                for i in range(min(QMouseEvent.x(), self.left_corner[0]),
+                               max(QMouseEvent.x(), self.left_corner[0])):
+                    for j in range(min(QMouseEvent.x(), self.left_corner[0]),
+                                   max(QMouseEvent.x(), self.left_corner[0])):
+                        if abs(A * i + B * j + C) < self.width // 2:
+                            self.pole[i][j] = self.color
+
             elif self.mode == 2:
                 self.circles.append(([self.left_corner,
                                       [-self.left_corner[0] + QMouseEvent.x(), -self.left_corner[1] + QMouseEvent.y()]],
                                      self.color.name(), self.width))
             elif self.mode == 3:
-                self.rectangles.append(([self.left_corner,
-                                      [-self.left_corner[0] + QMouseEvent.x(), -self.left_corner[1] + QMouseEvent.y()]],
-                                     self.color.name(), self.width))
+                for i in range(min(self.left_corner[0], QMouseEvent.x()), max(self.left_corner[0], QMouseEvent.x())):
+                    for i1 in range(self.width):
+                        for j1 in range(self.width):
+                            self.pole[i + i1][self.left_corner[1] + j1] = self.color
+                            self.pole[i + i1][QMouseEvent.y() + j1] = self.color
+                print(1)
+                for i in range(min(self.left_corner[1], QMouseEvent.y()), max(self.left_corner[1], QMouseEvent.y())):
+                    for i1 in range(self.width):
+                        for j1 in range(self.width):
+                            self.pole[self.left_corner[0] + i1][i + j1] = self.color
+                            self.pole[QMouseEvent.x() + i1][i + j1] = self.color
             self.update()
         self.counter += 1
         self.counter %= 2
@@ -71,27 +88,16 @@ class Example(QWidget):
         qp.begin(self)
         for i in range(600):
             for j in range(600):
-                qp.setPen(QColor(self.pole[i][j][0], self.pole[i][j][1], self.pole[i][j][2]))
+                qp.setPen(QColor(self.pole[i][j]))
                 qp.drawPoint(i, j)
         for i in self.straights:
-            pen = QPen(QColor(int(i[1][1:3], 16),
-                              int(i[1][3:5], 16),
-                              int(i[1][5:7], 16)), i[2])
+            pen = QPen(QColor(i[1]), i[2])
             qp.setPen(pen)
             qp.drawLine(i[0][0][0], i[0][0][1], i[0][1][0], i[0][1][1])
         for i in self.circles:
-            pen = QPen(QColor(int(i[1][1:3], 16),
-                              int(i[1][3:5], 16),
-                              int(i[1][5:7], 16)), i[2])
+            pen = QPen(QColor(i[1]), i[2])
             qp.setPen(pen)
             qp.drawEllipse(i[0][0][0], i[0][0][1], i[0][1][0], i[0][1][1])
-        for i in self.rectangles:
-            pen = QPen(QColor(int(i[1][1:3], 16),
-                              int(i[1][3:5], 16),
-                              int(i[1][5:7], 16)), i[2])
-            qp.setPen(pen)
-            qp.drawRect(i[0][0][0], i[0][0][1], i[0][1][0], i[0][1][1])
-        qp.end()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Right:
@@ -100,6 +106,9 @@ class Example(QWidget):
             self.width = max(5, self.width - 1)
         if event.key() == Qt.Key_F:
             self.color = QColorDialog.getColor()
+            self.color = (int(self.color.name()[1:3], 16),
+                          int(self.color.name()[3:5], 16),
+                          int(self.color.name()[5:7], 16))
         if event.key() == Qt.Key_D:
             self.mode += 1
             self.mode %= self.n
