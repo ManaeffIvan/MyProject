@@ -128,10 +128,6 @@ class Example(QWidget):
                           int(self.color.name()[5:7], 16))
         if event.key() == Qt.Key_D:
             self.mode += 1
-            self.mode += 1
-            self.mode += 1
-            self.mode += 1
-            self.mode += 1
             self.mode %= self.n
         if event.key() == Qt.Key_A:
             self.mode += self.n - 1
