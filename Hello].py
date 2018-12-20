@@ -15,6 +15,8 @@ class Example(QWidget):
         self.end1 = 0
         self.begin1 = 0
         self.left_corner = 0
+        self.x_begin = 0
+        self.y_begin = 0
         self.width = 5
         self.n = 5
         self.pole = [['#ffffff' for j in range(360)] for i in range(360)]
@@ -37,24 +39,20 @@ class Example(QWidget):
                     for j in range(self.width):
                         self.pole[QMouseEvent.x() + i][QMouseEvent.y() + j] = self.color
 
-    def recursion(self, x, y, x_begin, y_begin, n):
-        if x in range(-1, 301) and y in range(-1, 301) and self.pole[x][y] == self.pole[x_begin][y_begin] and n < 900:
-            if x != x_begin or y_begin != y:
+    def recursion(self, x, y, n):
+        if x in range(-1, 301) and y in range(-1, 301) and self.pole[x][y] == self.pole[self.x_begin][self.y_begin]:
+            if x != self.x_begin or self.y_begin != y:
                 self.pole[x][y] = self.color
-                n += 1
-            n = self.recursion(x - 1, y, x_begin, y_begin, n)
-            n = self.recursion(x, y - 1, x_begin, y_begin, n)
-            n = self.recursion(x + 1, y, x_begin, y_begin, n)
-            n = self.recursion(x, y + 1, x_begin, y_begin, n)
-        return n
+            self.recursion(x - 1, y, n)
+            self.recursion(x, y - 1, n)
+            self.recursion(x + 1, y, n)
+            self.recursion(x, y + 1, n)
 
     def mousePressEvent(self, QMouseEvent):
         if self.mode == 4:
-                k = 0
-                k1 = 1
-                while k != k1:
-                    k1 = k
-                    k += self.recursion(QMouseEvent.x(), QMouseEvent.y(), QMouseEvent.x(), QMouseEvent.y(), 0)
+                self.x_begin = QMouseEvent.x()
+                self.y_begin = QMouseEvent.y()
+                self.recursion(QMouseEvent.x(), QMouseEvent.y(), 0)
                 self.pole[QMouseEvent.x()][QMouseEvent.y()] = self.color
                 self.update()
         if self.counter % 2 == 0:
