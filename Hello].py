@@ -1,5 +1,4 @@
 import sys
-import math
 
 from PyQt5.Qt import Qt
 from PyQt5.QtWidgets import QWidget, QApplication
@@ -10,15 +9,15 @@ from PyQt5.QtGui import QPainter, QColor, QPen
 class Example(QWidget):
     def __init__(self):
         super().__init__()
-        self.names = ['line', 'straight', 'circle', 'rectangle']
+        self.names = ['line', 'straight', 'circle', 'rectangle', 'casting']
         self.counter = 0
         self.mode = 0
         self.end1 = 0
         self.begin1 = 0
         self.left_corner = 0
         self.width = 5
-        self.n = 4
-        self.pole = [['#ffffff' for j in range(660)] for i in range(660)]
+        self.n = 5
+        self.pole = [['#ffffff' for j in range(360)] for i in range(360)]
         self.circles = []
         self.straights = []
         self.rectangles = []
@@ -26,8 +25,8 @@ class Example(QWidget):
         self.color = QColorDialog.getColor()
 
     def initUI(self):
-        self.setGeometry(0, 0, 600, 600)
-        self.setFixedSize(600, 600)
+        self.setGeometry(0, 0, 300, 300)
+        self.setFixedSize(300, 300)
         self.setWindowTitle('Paint 2.0(line) width = 5')
         self.show()
 
@@ -38,13 +37,31 @@ class Example(QWidget):
                     for j in range(self.width):
                         self.pole[QMouseEvent.x() + i][QMouseEvent.y() + j] = self.color
 
+    def recursion(self, x, y, x_begin, y_begin, n):
+        if x in range(-1, 301) and y in range(-1, 301) and self.pole[x][y] == self.pole[x_begin][y_begin] and n < 900:
+            if x != x_begin or y_begin != y:
+                self.pole[x][y] = self.color
+                n += 1
+            n = self.recursion(x - 1, y, x_begin, y_begin, n)
+            n = self.recursion(x, y - 1, x_begin, y_begin, n)
+            n = self.recursion(x + 1, y, x_begin, y_begin, n)
+            n = self.recursion(x, y + 1, x_begin, y_begin, n)
+        return n
+
     def mousePressEvent(self, QMouseEvent):
+        if self.mode == 4:
+                k = 0
+                k1 = 1
+                while k != k1:
+                    k1 = k
+                    k += self.recursion(QMouseEvent.x(), QMouseEvent.y(), QMouseEvent.x(), QMouseEvent.y(), 0)
+                    print(k)
+                self.pole[QMouseEvent.x()][QMouseEvent.y()] = self.color
+                self.update()
         if self.counter % 2 == 0:
             if self.mode == 0:
                 self.setMouseTracking(True)
-            elif self.mode == 1:
-                self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
-            elif self.mode == 2 or self.mode == 3:
+            elif self.mode == 2 or self.mode == 3 or self.mode == 1:
                 self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
         else:
             if self.mode == 0:
@@ -53,28 +70,36 @@ class Example(QWidget):
                 A = self.left_corner[1] - QMouseEvent.y()
                 B = QMouseEvent.x() - self.left_corner[0]
                 C = self.left_corner[0] * QMouseEvent.y() - QMouseEvent.x() * self.left_corner[1]
-                print(1)
-                for i in range(min(QMouseEvent.x(), self.left_corner[0]) * 10000,
-                               max(QMouseEvent.x(), self.left_corner[0]) * 10000):
-                    for j in range(min(QMouseEvent.y(), self.left_corner[1]) * 10000,
-                                   max(QMouseEvent.y(), self.left_corner[1]) * 10000):
-                        if abs(A * (i // 10000) + B * (j // 10000) + C) < self.width / 2:
+                for i in range(min(QMouseEvent.x(), self.left_corner[0]),
+                               max(QMouseEvent.x(), self.left_corner[0])):
+                    for j in range(min(QMouseEvent.y(), self.left_corner[1]),
+                                   max(QMouseEvent.y(), self.left_corner[1])):
+                        if abs(A * i + B * j + C) < self.width * 5:
                             for i1 in range(self.width):
                                 for j1 in range(self.width):
-                                    self.pole[i // 10000 + i1][j // 10000 + j1] = self.color
-                                    self.pole[i // 10000 + i1][j // 10000 + j1] = self.color
-
+                                    self.pole[i + i1][j + j1] = self.color
+                                    self.pole[i + i1][j + j1] = self.color
             elif self.mode == 2:
-                self.circles.append(([self.left_corner,
-                                      [-self.left_corner[0] + QMouseEvent.x(), -self.left_corner[1] + QMouseEvent.y()]],
-                                     self.color.name(), self.width))
+                center = ((self.left_corner[0] + QMouseEvent.x()) // 2, (self.left_corner[1] + QMouseEvent.y()) // 2)
+                for i in range(min(QMouseEvent.x(), self.left_corner[0]) - self.width * 2,
+                               max(QMouseEvent.x(), self.left_corner[0]) + self.width * 2):
+                    for j in range(min(QMouseEvent.y(), self.left_corner[1] - self.width * 2),
+                                   max(QMouseEvent.y(), self.left_corner[1]) + self.width * 2):
+                        my_circle = (((i - center[0]) ** 2) * (((QMouseEvent.y() - self.left_corner[1]) // 2) ** 2) + (
+                                ((QMouseEvent.x() - self.left_corner[0]) // 2) ** 2) * ((j - center[1]) ** 2)) / (
+                                            ((QMouseEvent.x() - self.left_corner[0]) // 2) ** 2) / (
+                                            ((QMouseEvent.y() - self.left_corner[1]) // 2) ** 2)
+                        if my_circle < 1.02 and my_circle > 0.98:
+                            for i1 in range(self.width):
+                                for j1 in range(self.width):
+                                    self.pole[i + i1][j + j1] = self.color
+                                    self.pole[i + i1][j + j1] = self.color
             elif self.mode == 3:
                 for i in range(min(self.left_corner[0], QMouseEvent.x()), max(self.left_corner[0], QMouseEvent.x())):
                     for i1 in range(self.width):
                         for j1 in range(self.width):
                             self.pole[i + i1][self.left_corner[1] + j1] = self.color
                             self.pole[i + i1][QMouseEvent.y() + j1] = self.color
-                print(1)
                 for i in range(min(self.left_corner[1], QMouseEvent.y()), max(self.left_corner[1], QMouseEvent.y())):
                     for i1 in range(self.width):
                         for j1 in range(self.width):
@@ -87,18 +112,10 @@ class Example(QWidget):
     def paintEvent(self, event):
         qp = QPainter()
         qp.begin(self)
-        for i in range(600):
-            for j in range(600):
+        for i in range(300):
+            for j in range(300):
                 qp.setPen(QColor(self.pole[i][j]))
                 qp.drawPoint(i, j)
-        for i in self.straights:
-            pen = QPen(QColor(i[1]), i[2])
-            qp.setPen(pen)
-            qp.drawLine(i[0][0][0], i[0][0][1], i[0][1][0], i[0][1][1])
-        for i in self.circles:
-            pen = QPen(QColor(i[1]), i[2])
-            qp.setPen(pen)
-            qp.drawEllipse(i[0][0][0], i[0][0][1], i[0][1][0], i[0][1][1])
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Right:
@@ -120,12 +137,12 @@ class Example(QWidget):
         self.counter = 0
 
     def resizeEvent(self, QResizeEvent):
-        print(self.frameGeometry().height(),
-        self.frameGeometry().width())
+        pass
+        # print(self.frameGeometry().height(),
+        #       self.frameGeometry().width())
 
 
 if __name__ == '__main__':
-    print(int(0.01))
     app = QApplication(sys.argv)
     ex = Example()
     sys.exit(app.exec_())
