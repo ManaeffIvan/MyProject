@@ -10,14 +10,17 @@ class Example(QWidget):
     def __init__(self):
         super().__init__()
         self.names = ['line', 'straight', 'circle', 'rectangle', 'casting']
+        self.k = 0
         self.counter = 0
         self.mode = 0
         self.end1 = 0
         self.begin1 = 0
         self.left_corner = 0
+        self.x_begin = 0
+        self.y_begin = 0
         self.width = 5
         self.n = 5
-        self.pole = [['#ffffff' for j in range(460)] for i in range(460)]
+        self.pole = [['#ffffff' for j in range(360)] for i in range(360)]
         self.circles = []
         self.straights = []
         self.rectangles = []
@@ -25,8 +28,8 @@ class Example(QWidget):
         self.color = QColorDialog.getColor()
 
     def initUI(self):
-        self.setGeometry(0, 0, 400, 400)
-        self.setFixedSize(400, 400)
+        self.setGeometry(0, 0, 300, 300)
+        self.setFixedSize(300, 300)
         self.setWindowTitle('Paint 2.0(line) width = 5')
         self.show()
 
@@ -37,24 +40,20 @@ class Example(QWidget):
                     for j in range(self.width):
                         self.pole[QMouseEvent.x() + i][QMouseEvent.y() + j] = self.color
 
-    def recursion(self, x, y, x_begin, y_begin, n):
-        if x in range(-1, 401) and y in range(-1, 401) and self.pole[x][y] == self.pole[x_begin][y_begin] and n < 900:
-            if x != x_begin or y_begin != y:
+    def recursion(self, x, y, n):
+        if x in range(-1, 401) and y in range(-1, 401) and self.pole[x][y] == self.pole[self.x_begin][self.y_begin]:
+            if x != self.x_begin or self.y_begin != y:
                 self.pole[x][y] = self.color
-                n += 1
-            n = self.recursion(x - 1, y, x_begin, y_begin, n)
-            n = self.recursion(x, y - 1, x_begin, y_begin, n)
-            n = self.recursion(x + 1, y, x_begin, y_begin, n)
-            n = self.recursion(x, y + 1, x_begin, y_begin, n)
-        return n
+            self.recursion(x - 1, y, n)
+            self.recursion(x, y - 1, n)
+            self.recursion(x + 1, y, n)
+            self.recursion(x, y + 1, n)
 
     def mousePressEvent(self, QMouseEvent):
         if self.mode == 4:
-            k = 0
-            k1 = 1
-            while k != k1:
-                k1 = k
-                k += self.recursion(QMouseEvent.x(), QMouseEvent.y(), QMouseEvent.x(), QMouseEvent.y(), 0)
+            self.x_begin = QMouseEvent.x()
+            self.y_begin = QMouseEvent.y()
+            self.recursion(QMouseEvent.x(), QMouseEvent.y(), 0)
             self.pole[QMouseEvent.x()][QMouseEvent.y()] = self.color
             self.update()
         if self.counter % 2 == 0:
@@ -79,6 +78,7 @@ class Example(QWidget):
                                     self.pole[i + i1][j + j1] = self.color
                                     self.pole[i + i1][j + j1] = self.color
             elif self.mode == 2:
+                self.k += 1
                 center = ((self.left_corner[0] + QMouseEvent.x()) // 2, (self.left_corner[1] + QMouseEvent.y()) // 2)
                 for i in range(min(QMouseEvent.x(), self.left_corner[0]) - self.width * 2,
                                max(QMouseEvent.x(), self.left_corner[0]) + self.width * 2):
@@ -111,10 +111,17 @@ class Example(QWidget):
     def paintEvent(self, event):
         qp = QPainter()
         qp.begin(self)
-        for i in range(400):
-            for j in range(400):
-                qp.setPen(QColor(self.pole[i][j]))
-                qp.drawPoint(i, j)
+        pen = QPen(QColor(self.pole[0][0]))
+        print(self.k)
+        for i in range(300):
+            for j in range(300):
+                try:
+                    pen = QPen(QColor(self.pole[i][j]))
+                    qp.setPen(pen)
+                    qp.drawPoint(i, j)
+                except Exception:
+                    print(self.pole[i][j], self.pole[i][j - 1])
+
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Right:
@@ -122,10 +129,10 @@ class Example(QWidget):
         if event.key() == Qt.Key_Left:
             self.width = max(5, self.width - 1)
         if event.key() == Qt.Key_F:
-            self.color = QColorDialog.getColor()
-            self.color = (int(self.color.name()[1:3], 16),
-                          int(self.color.name()[3:5], 16),
-                          int(self.color.name()[5:7], 16))
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.color = color
+                print(self.color)
         if event.key() == Qt.Key_D:
             self.mode += 1
             self.mode %= self.n
@@ -136,7 +143,7 @@ class Example(QWidget):
         self.counter = 0
 
     def resizeEvent(self, QResizeEvent):
-        pass
+        print(QResizeEvent.x())
 
 
 if __name__ == '__main__':
