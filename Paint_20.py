@@ -10,7 +10,6 @@ class Example(QWidget):
     def __init__(self):
         super().__init__()
         self.names = ['line', 'straight', 'circle', 'rectangle', 'casting']
-        self.k = 0
         self.counter = 0
         self.mode = 0
         self.end1 = 0
@@ -78,7 +77,6 @@ class Example(QWidget):
                                     self.pole[i + i1][j + j1] = self.color
                                     self.pole[i + i1][j + j1] = self.color
             elif self.mode == 2:
-                self.k += 1
                 center = ((self.left_corner[0] + QMouseEvent.x()) // 2, (self.left_corner[1] + QMouseEvent.y()) // 2)
                 for i in range(min(QMouseEvent.x(), self.left_corner[0]) - self.width * 2,
                                max(QMouseEvent.x(), self.left_corner[0]) + self.width * 2):
@@ -112,15 +110,11 @@ class Example(QWidget):
         qp = QPainter()
         qp.begin(self)
         pen = QPen(QColor(self.pole[0][0]))
-        print(self.k)
         for i in range(300):
             for j in range(300):
-                try:
-                    pen = QPen(QColor(self.pole[i][j]))
-                    qp.setPen(pen)
-                    qp.drawPoint(i, j)
-                except Exception:
-                    print(self.pole[i][j], self.pole[i][j - 1])
+                pen = QPen(QColor(self.pole[i][j]))
+                qp.setPen(pen)
+                qp.drawPoint(i, j)
 
 
     def keyPressEvent(self, event):
@@ -132,7 +126,6 @@ class Example(QWidget):
             color = QColorDialog.getColor()
             if color.isValid():
                 self.color = color
-                print(self.color)
         if event.key() == Qt.Key_D:
             self.mode += 1
             self.mode %= self.n
@@ -141,9 +134,6 @@ class Example(QWidget):
             self.mode %= self.n
         self.setWindowTitle('Paint 2.0(' + self.names[self.mode] + ') width = ' + str(self.width))
         self.counter = 0
-
-    def resizeEvent(self, QResizeEvent):
-        print(QResizeEvent.x())
 
 
 if __name__ == '__main__':
