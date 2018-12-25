@@ -12,17 +12,12 @@ class Example(QWidget):
         self.names = ['line', 'straight', 'circle', 'rectangle', 'casting']
         self.counter = 0
         self.mode = 0
-        self.end1 = 0
-        self.begin1 = 0
         self.left_corner = 0
         self.x_begin = 0
         self.y_begin = 0
         self.width = 5
         self.n = 5
         self.pole = [['#ffffff' for j in range(360)] for i in range(360)]
-        self.circles = []
-        self.straights = []
-        self.rectangles = []
         self.initUI()
         self.color = QColorDialog.getColor()
 
@@ -32,12 +27,15 @@ class Example(QWidget):
         self.setWindowTitle('Paint 2.0(line) width = 5')
         self.show()
 
+    def myPoint(self, x, y):
+        for i in range(self.width):
+            for j in range(self.width):
+                self.pole[x + i][y + j] = self.color
+
     def mouseMoveEvent(self, QMouseEvent):
         if self.color.isValid():
             if self.mode == 0:
-                for i in range(self.width):
-                    for j in range(self.width):
-                        self.pole[QMouseEvent.x() + i][QMouseEvent.y() + j] = self.color
+                self.myPoint(QMouseEvent.x(), QMouseEvent.y())
 
     def recursion(self, x, y, n):
         if x in range(-1, 401) and y in range(-1, 401) and self.pole[x][y] == self.pole[self.x_begin][self.y_begin]:
@@ -72,10 +70,7 @@ class Example(QWidget):
                     for j in range(min(QMouseEvent.y(), self.left_corner[1]),
                                    max(QMouseEvent.y(), self.left_corner[1])):
                         if abs(A * i + B * j + C) < self.width * 5:
-                            for i1 in range(self.width):
-                                for j1 in range(self.width):
-                                    self.pole[i + i1][j + j1] = self.color
-                                    self.pole[i + i1][j + j1] = self.color
+                            self.myPoint(i, j)
             elif self.mode == 2:
                 center = ((self.left_corner[0] + QMouseEvent.x()) // 2, (self.left_corner[1] + QMouseEvent.y()) // 2)
                 for i in range(min(QMouseEvent.x(), self.left_corner[0]) - self.width * 2,
@@ -87,21 +82,14 @@ class Example(QWidget):
                                             ((QMouseEvent.x() - self.left_corner[0]) // 2) ** 2) / (
                                             ((QMouseEvent.y() - self.left_corner[1]) // 2) ** 2)
                         if my_circle < 1.05 and my_circle > 0.95:
-                            for i1 in range(self.width):
-                                for j1 in range(self.width):
-                                    self.pole[i + i1][j + j1] = self.color
-                                    self.pole[i + i1][j + j1] = self.color
+                            self.myPoint(i, j)
             elif self.mode == 3:
                 for i in range(min(self.left_corner[0], QMouseEvent.x()), max(self.left_corner[0], QMouseEvent.x())):
-                    for i1 in range(self.width):
-                        for j1 in range(self.width):
-                            self.pole[i + i1][self.left_corner[1] + j1] = self.color
-                            self.pole[i + i1][QMouseEvent.y() + j1] = self.color
+                    self.myPoint(i, self.left_corner[1])
+                    self.myPoint(i, QMouseEvent.y())
                 for i in range(min(self.left_corner[1], QMouseEvent.y()), max(self.left_corner[1], QMouseEvent.y())):
-                    for i1 in range(self.width):
-                        for j1 in range(self.width):
-                            self.pole[self.left_corner[0] + i1][i + j1] = self.color
-                            self.pole[QMouseEvent.x() + i1][i + j1] = self.color
+                    self.myPoint(self.left_corner[0], i)
+                    self.myPoint(QMouseEvent.x(), i)
             self.update()
         self.counter += 1
         self.counter %= 2
@@ -115,7 +103,6 @@ class Example(QWidget):
                 pen = QPen(QColor(self.pole[i][j]))
                 qp.setPen(pen)
                 qp.drawPoint(i, j)
-
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Right:
