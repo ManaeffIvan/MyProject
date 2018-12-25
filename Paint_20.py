@@ -19,7 +19,10 @@ class Example(QWidget):
         self.n = 5
         self.pole = [['#ffffff' for j in range(360)] for i in range(360)]
         self.initUI()
-        self.color = QColorDialog.getColor()
+        self.color = '#ffffff'
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.color = color
 
     def initUI(self):
         self.setGeometry(0, 0, 300, 300)
