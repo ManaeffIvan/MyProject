@@ -1,23 +1,26 @@
 import sys
+import random
 
-from PyQt5.Qt import Qt
-from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtWidgets import QColorDialog
-from PyQt5.QtGui import QPainter, QColor, QPen
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QColorDialog, QInputDialog
+from PyQt5.QtGui import QIcon, QImage, QPainter, QPen, QColor, QBrush
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QFileDialog, QMessageBox
 
 
-class Example(QWidget):
+class Example(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.names = ['line', 'straight', 'circle', 'rectangle', 'casting']
+        self.names = ['line', 'straight', 'circle', 'rectangle', 'spray']
         self.counter = 0
         self.mode = 0
         self.left_corner = 0
-        self.x_begin = 0
-        self.y_begin = 0
-        self.width = 5
-        self.n = 5
-        self.pole = [['#ffffff' for j in range(360)] for i in range(360)]
+        self.now = 0
+        self.width = 9
+        self.n = 4
+        self.x = 13
+        self.sizes = (700, 700)
+        self.image = QImage(self.sizes[0], self.sizes[1], QImage.Format_RGB32)
+        self.image.fill(Qt.white)
         self.initUI()
         self.color = '#ffffff'
         color = QColorDialog.getColor()
@@ -25,105 +28,193 @@ class Example(QWidget):
             self.color = color
 
     def initUI(self):
-        self.setGeometry(0, 0, 300, 300)
-        self.setFixedSize(300, 300)
-        self.setWindowTitle('Paint 2.0(line) width = 5')
+        self.setFixedSize(self.sizes[0], self.sizes[1])
+        self.setWindowTitle('Paint 2.0')
+        self.setWindowIcon(QIcon("pictures/Icon.png"))
+
+        Menu = self.menuBar()
+        file = Menu.addMenu("File")
+        forms = Menu.addMenu("Forms")
+        brushes = Menu.addMenu("Brushes")
+        colors = Menu.addMenu("Color")
+        widths = Menu.addMenu("Width")
+
+        self.widths(widths)
+        self.file(file)
+        self.brushes(brushes)
+        self.colors(colors)
+        self.forms(forms)
+
         self.show()
 
-    def myPoint(self, x, y):
-        for i in range(self.width):
-            for j in range(self.width):
-                self.pole[x + i][y + j] = self.color
-
     def mouseMoveEvent(self, QMouseEvent):
-        if self.color.isValid():
-            if self.mode == 0:
-                self.myPoint(QMouseEvent.x(), QMouseEvent.y())
+        if self.mode == 0:
+            if not self.left_corner == [-1, -1]:
+                qp = QPainter(self.image)
+                qp.begin(self.image)
+                pen = QPen(QColor(self.color), self.width)
+                qp.setPen(pen)
+                qp.drawLine(self.left_corner[0], self.left_corner[1], QMouseEvent.x(), QMouseEvent.y())
+            self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
 
-    def recursion(self, x, y, n):
-        if x in range(-1, 401) and y in range(-1, 401) and self.pole[x][y] == self.pole[self.x_begin][self.y_begin]:
-            if x != self.x_begin or self.y_begin != y:
-                self.pole[x][y] = self.color
-            self.recursion(x - 1, y, n)
-            self.recursion(x, y - 1, n)
-            self.recursion(x + 1, y, n)
-            self.recursion(x, y + 1, n)
+        elif self.mode == 4:
+            self.draw_spray(QMouseEvent.x(), QMouseEvent.y())
+
+        elif self.mode == 3 or self.mode == 2 or self.mode == 1:
+            if not self.left_corner == [-1, -1]:
+                self.now = [QMouseEvent.x(), QMouseEvent.y()]
+        self.update()
 
     def mousePressEvent(self, QMouseEvent):
         if self.mode == 4:
-            self.x_begin = QMouseEvent.x()
-            self.y_begin = QMouseEvent.y()
-            self.recursion(QMouseEvent.x(), QMouseEvent.y(), 0)
-            self.pole[QMouseEvent.x()][QMouseEvent.y()] = self.color
-            self.update()
+            self.draw_spray(QMouseEvent.x(), QMouseEvent.y())
         if self.counter % 2 == 0:
-            if self.mode == 0:
+            self.left_corner = [-1, -1]
+            if self.mode == 2 or self.mode == 3 or self.mode == 1:
                 self.setMouseTracking(True)
-            elif self.mode == 2 or self.mode == 3 or self.mode == 1:
                 self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
+                self.now = [QMouseEvent.x(), QMouseEvent.y()]
         else:
-            if self.mode == 0:
-                self.setMouseTracking(False)
-            elif self.mode == 1:
-                A = self.left_corner[1] - QMouseEvent.y()
-                B = QMouseEvent.x() - self.left_corner[0]
-                C = self.left_corner[0] * QMouseEvent.y() - QMouseEvent.x() * self.left_corner[1]
-                for i in range(min(QMouseEvent.x(), self.left_corner[0]),
-                               max(QMouseEvent.x(), self.left_corner[0])):
-                    for j in range(min(QMouseEvent.y(), self.left_corner[1]),
-                                   max(QMouseEvent.y(), self.left_corner[1])):
-                        if abs(A * i + B * j + C) < self.width * 5:
-                            self.myPoint(i, j)
+            qp = QPainter(self.image)
+            qp.begin(self.image)
+            pen = QPen(QColor(self.color), self.width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+            qp.setPen(pen)
+            if self.mode == 1:
+                qp.drawLine(self.left_corner[0], self.left_corner[1], QMouseEvent.x(), QMouseEvent.y())
             elif self.mode == 2:
-                center = ((self.left_corner[0] + QMouseEvent.x()) // 2, (self.left_corner[1] + QMouseEvent.y()) // 2)
-                for i in range(min(QMouseEvent.x(), self.left_corner[0]) - self.width * 2,
-                               max(QMouseEvent.x(), self.left_corner[0]) + self.width * 2):
-                    for j in range(min(QMouseEvent.y(), self.left_corner[1] - self.width * 2),
-                                   max(QMouseEvent.y(), self.left_corner[1]) + self.width * 2):
-                        my_circle = (((i - center[0]) ** 2) * (((QMouseEvent.y() - self.left_corner[1]) // 2) ** 2) + (
-                                ((QMouseEvent.x() - self.left_corner[0]) // 2) ** 2) * ((j - center[1]) ** 2)) / (
-                                            ((QMouseEvent.x() - self.left_corner[0]) // 2) ** 2) / (
-                                            ((QMouseEvent.y() - self.left_corner[1]) // 2) ** 2)
-                        if my_circle < 1.05 and my_circle > 0.95:
-                            self.myPoint(i, j)
+                qp.drawEllipse(self.left_corner[0], self.left_corner[1], QMouseEvent.x() - self.left_corner[0], QMouseEvent.y() - self.left_corner[1])
             elif self.mode == 3:
-                for i in range(min(self.left_corner[0], QMouseEvent.x()), max(self.left_corner[0], QMouseEvent.x())):
-                    self.myPoint(i, self.left_corner[1])
-                    self.myPoint(i, QMouseEvent.y())
-                for i in range(min(self.left_corner[1], QMouseEvent.y()), max(self.left_corner[1], QMouseEvent.y())):
-                    self.myPoint(self.left_corner[0], i)
-                    self.myPoint(QMouseEvent.x(), i)
-            self.update()
+                pen = QPen(QColor(self.color), 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                qp.setPen(pen)
+                qp.setBrush(QBrush(self.color, Qt.SolidPattern))
+                qp.drawRect(self.left_corner[0], self.left_corner[1], QMouseEvent.x() - self.left_corner[0], QMouseEvent.y() - self.left_corner[1])
+            self.setMouseTracking(False)
+            self.left_corner = [-1, -1]
+        self.update()
         self.counter += 1
         self.counter %= 2
 
-    def paintEvent(self, event):
-        qp = QPainter()
-        qp.begin(self)
-        pen = QPen(QColor(self.pole[0][0]))
-        for i in range(300):
-            for j in range(300):
-                pen = QPen(QColor(self.pole[i][j]))
-                qp.setPen(pen)
-                qp.drawPoint(i, j)
+    def draw_spray(self, x, y):
+        qp = QPainter(self.image)
+        qp.begin(self.image)
+        pen = QPen(QColor(self.color), 1)
+        qp.setPen(pen)
+        my_count = 0
+        while my_count < self.x:
+            a, b = random.randint(-self.width // 2, self.width // 2), random.randint(-self.width // 2, self.width // 2)
+            if a ** 2 + b ** 2 < (self.width // 2) ** 2:
+                my_count += 1
+                qp.drawPoint(x + a, y + b)
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Right:
-            self.width = min(30, self.width + 1)
-        if event.key() == Qt.Key_Left:
-            self.width = max(5, self.width - 1)
-        if event.key() == Qt.Key_F:
-            color = QColorDialog.getColor()
-            if color.isValid():
-                self.color = color
-        if event.key() == Qt.Key_D:
-            self.mode += 1
-            self.mode %= self.n
-        if event.key() == Qt.Key_A:
-            self.mode += self.n - 1
-            self.mode %= self.n
-        self.setWindowTitle('Paint 2.0(' + self.names[self.mode] + ') width = ' + str(self.width))
+    def paintEvent(self, event):
+        qp = QPainter(self)
+        qp.drawImage(self.rect(), self.image, self.image.rect())
+        pen = QPen(QColor(self.color), self.width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+        qp.setPen(pen)
+        if self.mode == 3:
+            if not self.left_corner == [-1, -1]:
+                pen = QPen(QColor(self.color), 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                qp.setPen(pen)
+                qp.setBrush(QBrush(self.color, Qt.SolidPattern))
+                qp.drawRect(self.left_corner[0], self.left_corner[1], self.now[0] - self.left_corner[0], self.now[1] - self.left_corner[1])
+        elif self.mode == 2:
+            if not self.left_corner == [-1, -1]:
+                qp.drawEllipse(self.left_corner[0], self.left_corner[1], self.now[0] - self.left_corner[0], self.now[1] - self.left_corner[1])
+        elif self.mode == 1:
+            if not self.left_corner == [-1, -1]:
+                qp.drawLine(self.left_corner[0], self.left_corner[1], self.now[0], self.now[1])
+
+    def forms(self, form):
+        rectangle = QAction(QIcon("pictures/rectangle.png"), "Rectangle", self)
+        form.addAction(rectangle)
+        rectangle.triggered.connect(self.rectangle)
+
+        circle = QAction(QIcon("pictures/circle.png"), "Circle", self)
+        form.addAction(circle)
+        circle.triggered.connect(self.circle)
+
+        straight = QAction(QIcon("pictures/straight.png"), "Straight", self)
+        form.addAction(straight)
+        straight.triggered.connect(self.straight)
+
+    def rectangle(self):
+        self.mode = 3
+        self.setMouseTracking(False)
+        self.left_corner = [-1, -1]
         self.counter = 0
+
+    def circle(self):
+        self.mode = 2
+        self.setMouseTracking(False)
+        self.left_corner = [-1, -1]
+        self.counter = 0
+
+    def straight(self):
+        self.mode = 1
+        self.setMouseTracking(False)
+        self.left_corner = [-1, -1]
+        self.counter = 0
+
+    def brushes(self, brushes):
+        brush = QAction(QIcon("pictures/Brush.png"), "Brush", self)
+        brushes.addAction(brush)
+        brush.triggered.connect(self.brush)
+
+        spray = QAction(QIcon("pictures/Spray.png"), "Spray", self)
+        brushes.addAction(spray)
+        spray.triggered.connect(self.spray)
+
+    def brush(self):
+        self.mode = 0
+        self.setMouseTracking(False)
+        self.left_corner = [-1, -1]
+        self.counter = 0
+
+    def spray(self):
+        self.mode = 4
+        self.setMouseTracking(False)
+        self.left_corner = [-1, -1]
+        self.counter = 0
+
+    def file(self, fileMenu):
+        save = QAction(QIcon("pictures/save.png"), "Save As...", self)
+        save.setShortcut("Ctrl+S")
+        fileMenu.addAction(save)
+        save.triggered.connect(self.save)
+
+    def save(self):
+        filePath, _ = QFileDialog.getSaveFileName(self, "Save Image", "", "PNG(*.png);;" " JPEG(*.jpg *.jpeg);;" " ALL Files(*.*)")
+        if filePath == '':
+            return
+        else:
+            self.image.save(filePath)
+
+    def colors(self, colors):
+        change_color = colors.addAction(QIcon("pictures/colors.png"), 'change Color')
+        change_color.setShortcut("Ctrl+F")
+        change_color.triggered.connect(self.change_color)
+
+    def change_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.color = color
+
+    def widths(self, widths):
+        change_width = widths.addAction(QIcon("pictures/width.png"), 'change Width')
+        change_width.setShortcut("Ctrl+W")
+        change_width.triggered.connect(self.change_width)
+
+    def change_width(self):
+        i, okBtnPressed = QInputDialog.getInt(
+            self, "Введите ширину", "Ширина:", self.width, 9, 30, 1
+        )
+        if okBtnPressed:
+            self.width = int(i)
+
+    def closeEvent(self, event):
+        flag = QMessageBox.question(self, 'Exit', "Do you want to save changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if flag == QMessageBox.Yes:
+            self.save()
 
 
 if __name__ == '__main__':
