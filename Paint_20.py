@@ -4,7 +4,8 @@ import random
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QColorDialog, QInputDialog
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPen, QColor, QBrush
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction,\
+    QFileDialog, QMessageBox
 
 
 class Example(QMainWindow):
@@ -54,7 +55,8 @@ class Example(QMainWindow):
                 qp.begin(self.image)
                 pen = QPen(QColor(self.color), self.width)
                 qp.setPen(pen)
-                qp.drawLine(self.left_corner[0], self.left_corner[1], QMouseEvent.x(), QMouseEvent.y())
+                qp.drawLine(self.left_corner[0], self.left_corner[1],
+                            QMouseEvent.x(), QMouseEvent.y())
             self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
 
         elif self.mode == 4:
@@ -77,17 +79,40 @@ class Example(QMainWindow):
         else:
             qp = QPainter(self.image)
             qp.begin(self.image)
-            pen = QPen(QColor(self.color), self.width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+            pen = QPen(
+                QColor(self.color),
+                self.width,
+                Qt.SolidLine,
+                Qt.RoundCap,
+                Qt.RoundJoin
+            )
             qp.setPen(pen)
             if self.mode == 1:
-                qp.drawLine(self.left_corner[0], self.left_corner[1], QMouseEvent.x(), QMouseEvent.y())
+                qp.drawLine(self.left_corner[0], self.left_corner[1],
+                            QMouseEvent.x(), QMouseEvent.y())
             elif self.mode == 2:
-                qp.drawEllipse(self.left_corner[0], self.left_corner[1], QMouseEvent.x() - self.left_corner[0], QMouseEvent.y() - self.left_corner[1])
+                qp.drawEllipse(
+                    self.left_corner[0],
+                    self.left_corner[1],
+                    QMouseEvent.x() - self.left_corner[0],
+                    QMouseEvent.y() - self.left_corner[1]
+                )
             elif self.mode == 3:
-                pen = QPen(QColor(self.color), 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                pen = QPen(
+                    QColor(self.color),
+                    1,
+                    Qt.SolidLine,
+                    Qt.RoundCap,
+                    Qt.RoundJoin
+                )
                 qp.setPen(pen)
                 qp.setBrush(QBrush(self.color, Qt.SolidPattern))
-                qp.drawRect(self.left_corner[0], self.left_corner[1], QMouseEvent.x() - self.left_corner[0], QMouseEvent.y() - self.left_corner[1])
+                qp.drawRect(
+                    self.left_corner[0],
+                    self.left_corner[1],
+                    QMouseEvent.x() - self.left_corner[0],
+                    QMouseEvent.y() - self.left_corner[1]
+                )
             self.setMouseTracking(False)
             self.left_corner = [-1, -1]
         self.update()
@@ -101,7 +126,8 @@ class Example(QMainWindow):
         qp.setPen(pen)
         my_count = 0
         while my_count < self.x:
-            a, b = random.randint(-self.width // 2, self.width // 2), random.randint(-self.width // 2, self.width // 2)
+            a = random.randint(-self.width // 2, self.width // 2)
+            b = random.randint(-self.width // 2, self.width // 2)
             if a ** 2 + b ** 2 < (self.width // 2) ** 2:
                 my_count += 1
                 qp.drawPoint(x + a, y + b)
@@ -109,20 +135,47 @@ class Example(QMainWindow):
     def paintEvent(self, event):
         qp = QPainter(self)
         qp.drawImage(self.rect(), self.image, self.image.rect())
-        pen = QPen(QColor(self.color), self.width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+        pen = QPen(
+            QColor(self.color),
+            self.width,
+            Qt.SolidLine,
+            Qt.RoundCap,
+            Qt.RoundJoin
+        )
         qp.setPen(pen)
         if self.mode == 3:
             if not self.left_corner == [-1, -1]:
-                pen = QPen(QColor(self.color), 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                pen = QPen(
+                    QColor(self.color),
+                    1,
+                    Qt.SolidLine,
+                    Qt.RoundCap,
+                    Qt.RoundJoin
+                )
                 qp.setPen(pen)
                 qp.setBrush(QBrush(self.color, Qt.SolidPattern))
-                qp.drawRect(self.left_corner[0], self.left_corner[1], self.now[0] - self.left_corner[0], self.now[1] - self.left_corner[1])
+                qp.drawRect(
+                    self.left_corner[0],
+                    self.left_corner[1],
+                    self.now[0] - self.left_corner[0],
+                    self.now[1] - self.left_corner[1]
+                )
         elif self.mode == 2:
             if not self.left_corner == [-1, -1]:
-                qp.drawEllipse(self.left_corner[0], self.left_corner[1], self.now[0] - self.left_corner[0], self.now[1] - self.left_corner[1])
+                qp.drawEllipse(
+                    self.left_corner[0],
+                    self.left_corner[1],
+                    self.now[0] - self.left_corner[0],
+                    self.now[1] - self.left_corner[1]
+                )
         elif self.mode == 1:
             if not self.left_corner == [-1, -1]:
-                qp.drawLine(self.left_corner[0], self.left_corner[1], self.now[0], self.now[1])
+                qp.drawLine(
+                    self.left_corner[0],
+                    self.left_corner[1],
+                    self.now[0],
+                    self.now[1]
+                )
 
     def forms(self, form):
         rectangle = QAction(QIcon("pictures/rectangle.png"), "Rectangle", self)
@@ -183,14 +236,22 @@ class Example(QMainWindow):
         save.triggered.connect(self.save)
 
     def save(self):
-        filePath, _ = QFileDialog.getSaveFileName(self, "Save Image", "", "PNG(*.png);;" " JPEG(*.jpg *.jpeg);;" " ALL Files(*.*)")
+        filePath, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Image",
+            "",
+            "PNG(*.png);;" " JPEG(*.jpg *.jpeg);;" " ALL Files(*.*)"
+        )
         if filePath == '':
             return
         else:
             self.image.save(filePath)
 
     def colors(self, colors):
-        change_color = colors.addAction(QIcon("pictures/colors.png"), 'change Color')
+        change_color = colors.addAction(
+            QIcon("pictures/colors.png"),
+            'change Color'
+        )
         change_color.setShortcut("Ctrl+F")
         change_color.triggered.connect(self.change_color)
 
@@ -200,7 +261,10 @@ class Example(QMainWindow):
             self.color = color
 
     def widths(self, widths):
-        change_width = widths.addAction(QIcon("pictures/width.png"), 'change Width')
+        change_width = widths.addAction(
+            QIcon("pictures/width.png"),
+            'change Width'
+        )
         change_width.setShortcut("Ctrl+W")
         change_width.triggered.connect(self.change_width)
 
@@ -212,7 +276,12 @@ class Example(QMainWindow):
             self.width = int(i)
 
     def closeEvent(self, event):
-        flag = QMessageBox.question(self, 'Exit', "Do you want to save changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        flag = QMessageBox.question(
+            self,
+            'Exit',
+            "Do you want to save changes?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No)
         if flag == QMessageBox.Yes:
             self.save()
 
