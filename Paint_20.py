@@ -4,25 +4,39 @@ import random
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QColorDialog, QInputDialog
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPen, QColor, QBrush
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAction,\
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, \
     QFileDialog, QMessageBox
 
 
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.names = ['line', 'straight', 'circle', 'rectangle', 'spray']
+        # счётчик нажатий при рисовании прямоугольника, прямой и элипса
         self.counter = 0
+        # переменная обозначающая мод кисти сейчас, всего модов 5:
+        #  кривая, прямая, элипс, прямоугольник и балончик
         self.mode = 0
+        # координаты первого из углов фигуры
+        # (для элипса: первого из углов прямоугольника, в который элипс вписан)
         self.left_corner = 0
+        # координаты ворого из углов фигуры
+        # (для элипса - второго из углов прямоугольника,
+        #  в который элипс вписан,
+        #  а для прямой - её конец) на момент выбора
         self.now = 0
+        # ширина кисти
         self.width = 9
+        # колличество модов
         self.n = 4
+        # колличество точек при рисовании балончиком
         self.x = 13
+        # размеры окна
         self.sizes = (700, 700)
+        # место для рисования
         self.image = QImage(self.sizes[0], self.sizes[1], QImage.Format_RGB32)
         self.image.fill(Qt.white)
         self.initUI()
+        # цвет кисти
         self.color = '#ffffff'
         color = QColorDialog.getColor()
         if color.isValid():
@@ -33,6 +47,7 @@ class Example(QMainWindow):
         self.setWindowTitle('Paint 2.0')
         self.setWindowIcon(QIcon("pictures/Icon.png"))
 
+        # меню
         Menu = self.menuBar()
         file = Menu.addMenu("File")
         forms = Menu.addMenu("Forms")
@@ -49,6 +64,7 @@ class Example(QMainWindow):
         self.show()
 
     def mouseMoveEvent(self, QMouseEvent):
+        # рисование кривой
         if self.mode == 0:
             if not self.left_corner == [-1, -1]:
                 qp = QPainter(self.image)
@@ -59,23 +75,28 @@ class Example(QMainWindow):
                             QMouseEvent.x(), QMouseEvent.y())
             self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
 
+        # рисование балончиком
         elif self.mode == 4:
             self.draw_spray(QMouseEvent.x(), QMouseEvent.y())
 
+        # изменение второго угла временного прямоугольника, элипса или прямой
         elif self.mode == 3 or self.mode == 2 or self.mode == 1:
             if not self.left_corner == [-1, -1]:
                 self.now = [QMouseEvent.x(), QMouseEvent.y()]
         self.update()
 
     def mousePressEvent(self, QMouseEvent):
+        # рисование балончиком
         if self.mode == 4:
             self.draw_spray(QMouseEvent.x(), QMouseEvent.y())
+        # рисование начала или левого угла
         if self.counter % 2 == 0:
             self.left_corner = [-1, -1]
             if self.mode == 2 or self.mode == 3 or self.mode == 1:
                 self.setMouseTracking(True)
                 self.left_corner = [QMouseEvent.x(), QMouseEvent.y()]
                 self.now = [QMouseEvent.x(), QMouseEvent.y()]
+        # рисование фигуры
         else:
             qp = QPainter(self.image)
             qp.begin(self.image)
@@ -87,9 +108,11 @@ class Example(QMainWindow):
                 Qt.RoundJoin
             )
             qp.setPen(pen)
+            # рисование прямой
             if self.mode == 1:
                 qp.drawLine(self.left_corner[0], self.left_corner[1],
                             QMouseEvent.x(), QMouseEvent.y())
+            # рисование елипса
             elif self.mode == 2:
                 qp.drawEllipse(
                     self.left_corner[0],
@@ -97,16 +120,8 @@ class Example(QMainWindow):
                     QMouseEvent.x() - self.left_corner[0],
                     QMouseEvent.y() - self.left_corner[1]
                 )
+            # рисование прямоугольника
             elif self.mode == 3:
-                pen = QPen(
-                    QColor(self.color),
-                    1,
-                    Qt.SolidLine,
-                    Qt.RoundCap,
-                    Qt.RoundJoin
-                )
-                qp.setPen(pen)
-                qp.setBrush(QBrush(self.color, Qt.SolidPattern))
                 qp.drawRect(
                     self.left_corner[0],
                     self.left_corner[1],
@@ -119,6 +134,7 @@ class Example(QMainWindow):
         self.counter += 1
         self.counter %= 2
 
+    # формула для рисования балончиком
     def draw_spray(self, x, y):
         qp = QPainter(self.image)
         qp.begin(self.image)
@@ -132,6 +148,7 @@ class Example(QMainWindow):
                 my_count += 1
                 qp.drawPoint(x + a, y + b)
 
+    # изменение экрана
     def paintEvent(self, event):
         qp = QPainter(self)
         qp.drawImage(self.rect(), self.image, self.image.rect())
@@ -143,23 +160,16 @@ class Example(QMainWindow):
             Qt.RoundJoin
         )
         qp.setPen(pen)
+        # рисование временного прямогольника
         if self.mode == 3:
             if not self.left_corner == [-1, -1]:
-                pen = QPen(
-                    QColor(self.color),
-                    1,
-                    Qt.SolidLine,
-                    Qt.RoundCap,
-                    Qt.RoundJoin
-                )
-                qp.setPen(pen)
-                qp.setBrush(QBrush(self.color, Qt.SolidPattern))
                 qp.drawRect(
                     self.left_corner[0],
                     self.left_corner[1],
                     self.now[0] - self.left_corner[0],
                     self.now[1] - self.left_corner[1]
                 )
+        # рисование временного элипса
         elif self.mode == 2:
             if not self.left_corner == [-1, -1]:
                 qp.drawEllipse(
@@ -168,6 +178,7 @@ class Example(QMainWindow):
                     self.now[0] - self.left_corner[0],
                     self.now[1] - self.left_corner[1]
                 )
+        # рисование временной прямой
         elif self.mode == 1:
             if not self.left_corner == [-1, -1]:
                 qp.drawLine(
@@ -177,6 +188,7 @@ class Example(QMainWindow):
                     self.now[1]
                 )
 
+    # раздел форм
     def forms(self, form):
         rectangle = QAction(QIcon("pictures/rectangle.png"), "Rectangle", self)
         form.addAction(rectangle)
@@ -190,24 +202,29 @@ class Example(QMainWindow):
         form.addAction(straight)
         straight.triggered.connect(self.straight)
 
+    # все формы
+    # прямоугольник
     def rectangle(self):
         self.mode = 3
         self.setMouseTracking(False)
         self.left_corner = [-1, -1]
         self.counter = 0
 
+    # элипс
     def circle(self):
         self.mode = 2
         self.setMouseTracking(False)
         self.left_corner = [-1, -1]
         self.counter = 0
 
+    # прямая
     def straight(self):
         self.mode = 1
         self.setMouseTracking(False)
         self.left_corner = [-1, -1]
         self.counter = 0
 
+    # раздел кистей
     def brushes(self, brushes):
         brush = QAction(QIcon("pictures/Brush.png"), "Brush", self)
         brushes.addAction(brush)
@@ -217,24 +234,29 @@ class Example(QMainWindow):
         brushes.addAction(spray)
         spray.triggered.connect(self.spray)
 
+    # все кисти
+    # обычная кисть
     def brush(self):
         self.mode = 0
         self.setMouseTracking(False)
         self.left_corner = [-1, -1]
         self.counter = 0
 
+    # балончик
     def spray(self):
         self.mode = 4
         self.setMouseTracking(False)
         self.left_corner = [-1, -1]
         self.counter = 0
 
+    # раздел файл
     def file(self, fileMenu):
         save = QAction(QIcon("pictures/save.png"), "Save As...", self)
         save.setShortcut("Ctrl+S")
         fileMenu.addAction(save)
         save.triggered.connect(self.save)
 
+    # сохранение
     def save(self):
         filePath, _ = QFileDialog.getSaveFileName(
             self,
@@ -247,6 +269,7 @@ class Example(QMainWindow):
         else:
             self.image.save(filePath)
 
+    # раздел цвета
     def colors(self, colors):
         change_color = colors.addAction(
             QIcon("pictures/colors.png"),
@@ -255,11 +278,13 @@ class Example(QMainWindow):
         change_color.setShortcut("Ctrl+F")
         change_color.triggered.connect(self.change_color)
 
+    # обработка изменение цвета
     def change_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
             self.color = color
 
+    # раздел ширины
     def widths(self, widths):
         change_width = widths.addAction(
             QIcon("pictures/width.png"),
@@ -268,6 +293,7 @@ class Example(QMainWindow):
         change_width.setShortcut("Ctrl+W")
         change_width.triggered.connect(self.change_width)
 
+    # обработка изменения ширины
     def change_width(self):
         i, okBtnPressed = QInputDialog.getInt(
             self, "Введите ширину", "Ширина:", self.width, 9, 30, 1
@@ -275,6 +301,7 @@ class Example(QMainWindow):
         if okBtnPressed:
             self.width = int(i)
 
+    # обработка закрытия окна и сохранение изменений
     def closeEvent(self, event):
         flag = QMessageBox.question(
             self,
