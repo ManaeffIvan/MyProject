@@ -4,8 +4,7 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPen, QColor, QBrush
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, \
-    QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QColorDialog, QInputDialog
+    QFileDialog, QMessageBox, QColorDialog, QInputDialog
 
 
 class Example(QMainWindow):
