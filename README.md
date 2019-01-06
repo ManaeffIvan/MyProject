@@ -7,3 +7,8 @@
 У меня имеется один класс Example наследуемый от QMainWindow. Также в нём я создаю меню, в котором можно выбрать один из 5 инструментов: кисть, прямая, прямоугольник, элипс, балончик. Смену инструмента я сделал с помощью переменной mode. В нём также можно откорректировать цвет контурных линий, их ширину и заливку фигуры (прямоугольника и элипса).
 
 Свой рисунок, сделанный в программе можно легко сохранить во время работы, но даже забыв его сохранить, программа напомнит вам об этом перед закрытием.
+![скриншот рисования](https://github.com/ManaeffIvan/MyProject/blob/master/pictures/screen1.png)
+![скриншот меню](https://github.com/ManaeffIvan/MyProject/blob/master/pictures/screen2.png)
+![скриншот выбора цвета](https://github.com/ManaeffIvan/MyProject/blob/master/pictures/screen3.png)
+![скриншот выбора ширины](https://github.com/ManaeffIvan/MyProject/blob/master/pictures/screen4.png)
+![скриншот предупреждения перед выходом](https://github.com/ManaeffIvan/MyProject/blob/master/pictures/screen5.png)
