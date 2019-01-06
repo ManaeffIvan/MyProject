@@ -1,11 +1,11 @@
-import sys
 import random
+import sys
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QColorDialog, QInputDialog
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPen, QColor, QBrush
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, \
     QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QColorDialog, QInputDialog
 
 
 class Example(QMainWindow):
@@ -37,10 +37,8 @@ class Example(QMainWindow):
         self.image.fill(Qt.white)
         self.initUI()
         # цвет кисти
-        self.color = '#ffffff'
-        color = QColorDialog.getColor()
-        if color.isValid():
-            self.color = color
+        self.color = QColor('#000000')
+        self.color1 = QColor('#000000')
 
     def initUI(self):
         self.setFixedSize(self.sizes[0], self.sizes[1])
@@ -108,6 +106,7 @@ class Example(QMainWindow):
                 Qt.RoundJoin
             )
             qp.setPen(pen)
+            qp.setBrush(QBrush(self.color1, Qt.SolidPattern))
             # рисование прямой
             if self.mode == 1:
                 qp.drawLine(self.left_corner[0], self.left_corner[1],
@@ -160,6 +159,7 @@ class Example(QMainWindow):
             Qt.RoundJoin
         )
         qp.setPen(pen)
+        qp.setBrush(QBrush(self.color1, Qt.SolidPattern))
         # рисование временного прямогольника
         if self.mode == 3:
             if not self.left_corner == [-1, -1]:
@@ -278,11 +278,23 @@ class Example(QMainWindow):
         change_color.setShortcut("Ctrl+F")
         change_color.triggered.connect(self.change_color)
 
+        change_color1 = colors.addAction(
+            QIcon("pictures/colors.png"),
+            'change Brush Color'
+        )
+        change_color1.setShortcut("Ctrl+Shift+F")
+        change_color1.triggered.connect(self.change_color1)
+
     # обработка изменение цвета
     def change_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
             self.color = color
+
+    def change_color1(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.color1 = color
 
     # раздел ширины
     def widths(self, widths):
