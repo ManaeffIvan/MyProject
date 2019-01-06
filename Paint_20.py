@@ -36,8 +36,9 @@ class Example(QMainWindow):
         self.image = QImage(self.sizes[0], self.sizes[1], QImage.Format_RGB32)
         self.image.fill(Qt.white)
         self.initUI()
-        # цвет кисти
+        # цвет кисти или контуров
         self.color = QColor('#000000')
+        # цвет заливки
         self.color1 = QColor('#000000')
 
     def initUI(self):
@@ -285,12 +286,13 @@ class Example(QMainWindow):
         change_color1.setShortcut("Ctrl+Shift+F")
         change_color1.triggered.connect(self.change_color1)
 
-    # обработка изменение цвета
+    # обработка изменение цвета контуров
     def change_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
             self.color = color
 
+    # обработка изменение цвета заливки
     def change_color1(self):
         color = QColorDialog.getColor()
         if color.isValid():
